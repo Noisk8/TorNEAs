@@ -1,0 +1,16 @@
+# Configuración del servidor
+PORT=8080
+
+# Configuración de la base de datos
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=tu_contraseña
+DB_NAME=tornea
+
+# Configuración de JWT
+JWT_SECRET=tu_clave_secreta_para_jwt
+JWT_EXPIRATION=24h
+
+# Configuración CORS
+ALLOWED_ORIGINS=http://localhost:5175
