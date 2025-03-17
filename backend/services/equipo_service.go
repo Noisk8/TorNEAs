@@ -74,69 +74,11 @@ func (s *EquipoService) GetTablaPosiciones() ([]models.Equipo, error) {
 		return nil, err
 	}
 	
-	// Para cada equipo, calcular sus estadísticas
+	// Calcular estadísticas para cada equipo
 	for i := range equipos {
-		// Obtener partidos como local
-		var partidosLocal []models.Partido
-		if err := s.DB.Where("equipo_local_id = ? AND estado = ?", equipos[i].ID, "Finalizado").
-			Find(&partidosLocal).Error; err != nil {
+		if err := CalcularEstadisticas(s.DB, &equipos[i]); err != nil {
 			return nil, err
 		}
-		
-		// Obtener partidos como visitante
-		var partidosVisitante []models.Partido
-		if err := s.DB.Where("equipo_visitante_id = ? AND estado = ?", equipos[i].ID, "Finalizado").
-			Find(&partidosVisitante).Error; err != nil {
-			return nil, err
-		}
-		
-		// Calcular estadísticas
-		equipos[i].PJ = len(partidosLocal) + len(partidosVisitante)
-		equipos[i].PG = 0
-		equipos[i].PE = 0
-		equipos[i].PP = 0
-		equipos[i].GF = 0
-		equipos[i].GC = 0
-		equipos[i].Puntos = 0
-		
-		// Procesar partidos como local
-		for _, partido := range partidosLocal {
-			if partido.GolesLocal != nil && partido.GolesVisitante != nil {
-				equipos[i].GF += *partido.GolesLocal
-				equipos[i].GC += *partido.GolesVisitante
-				
-				if *partido.GolesLocal > *partido.GolesVisitante {
-					equipos[i].PG++
-					equipos[i].Puntos += 3
-				} else if *partido.GolesLocal == *partido.GolesVisitante {
-					equipos[i].PE++
-					equipos[i].Puntos += 1
-				} else {
-					equipos[i].PP++
-				}
-			}
-		}
-		
-		// Procesar partidos como visitante
-		for _, partido := range partidosVisitante {
-			if partido.GolesLocal != nil && partido.GolesVisitante != nil {
-				equipos[i].GF += *partido.GolesVisitante
-				equipos[i].GC += *partido.GolesLocal
-				
-				if *partido.GolesVisitante > *partido.GolesLocal {
-					equipos[i].PG++
-					equipos[i].Puntos += 3
-				} else if *partido.GolesVisitante == *partido.GolesLocal {
-					equipos[i].PE++
-					equipos[i].Puntos += 1
-				} else {
-					equipos[i].PP++
-				}
-			}
-		}
-		
-		// Calcular diferencia de goles
-		equipos[i].DG = equipos[i].GF - equipos[i].GC
 	}
 	
 	// Ordenar equipos por puntos, diferencia de goles y goles a favor
@@ -160,4 +102,92 @@ func (s *EquipoService) GetTablaPosiciones() ([]models.Equipo, error) {
 	}
 	
 	return equipos, nil
+}
+
+// CalcularEstadisticas calcula las estadísticas para un equipo
+func CalcularEstadisticas(db *gorm.DB, equipo *models.Equipo) error {
+	// Obtener todos los partidos finalizados del equipo
+	var partidos []models.Partido
+	if err := db.Where("(equipo_local_id = ? OR equipo_visitante_id = ?) AND estado = ?",
+		equipo.ID, equipo.ID, "finalizado").Find(&partidos).Error; err != nil {
+		return err
+	}
+
+	// Reiniciar estadísticas
+	equipo.PJ = 0
+	equipo.PG = 0
+	equipo.PE = 0
+	equipo.PP = 0
+	equipo.GF = 0
+	equipo.GC = 0
+
+	// Calcular estadísticas
+	for _, partido := range partidos {
+		equipo.PJ++
+
+		if partido.EquipoLocalID == equipo.ID {
+			// El equipo jugó como local
+			equipo.GF += partido.GolesLocal
+			equipo.GC += partido.GolesVisitante
+
+			if partido.GolesLocal > partido.GolesVisitante {
+				equipo.PG++
+			} else if partido.GolesLocal < partido.GolesVisitante {
+				equipo.PP++
+			} else {
+				equipo.PE++
+			}
+		} else {
+			// El equipo jugó como visitante
+			equipo.GF += partido.GolesVisitante
+			equipo.GC += partido.GolesLocal
+
+			if partido.GolesVisitante > partido.GolesLocal {
+				equipo.PG++
+			} else if partido.GolesVisitante < partido.GolesLocal {
+				equipo.PP++
+			} else {
+				equipo.PE++
+			}
+		}
+	}
+
+	// Calcular diferencia de goles y puntos
+	equipo.DG = equipo.GF - equipo.GC
+	equipo.Puntos = (equipo.PG * 3) + equipo.PE
+
+	// Obtener los últimos 5 partidos
+	var ultimosPartidos []models.Partido
+	if err := db.Where("(equipo_local_id = ? OR equipo_visitante_id = ?) AND estado = ?",
+		equipo.ID, equipo.ID, "finalizado").
+		Order("fecha_hora DESC").
+		Limit(5).
+		Find(&ultimosPartidos).Error; err != nil {
+		return err
+	}
+
+	// Calcular forma reciente
+	ultimosJuegos := ""
+	for _, partido := range ultimosPartidos {
+		if partido.EquipoLocalID == equipo.ID {
+			if partido.GolesLocal > partido.GolesVisitante {
+				ultimosJuegos += "V"
+			} else if partido.GolesLocal < partido.GolesVisitante {
+				ultimosJuegos += "D"
+			} else {
+				ultimosJuegos += "E"
+			}
+		} else {
+			if partido.GolesVisitante > partido.GolesLocal {
+				ultimosJuegos += "V"
+			} else if partido.GolesVisitante < partido.GolesLocal {
+				ultimosJuegos += "D"
+			} else {
+				ultimosJuegos += "E"
+			}
+		}
+	}
+	equipo.UltimosJuegos = ultimosJuegos
+
+	return nil
 }

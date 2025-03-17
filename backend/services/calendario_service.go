@@ -153,80 +153,79 @@ func (s *CalendarioService) GetUltimosResultados(cantidad int) ([]models.Partido
 }
 
 // GenerarCalendario genera un calendario completo para el torneo
-// Este método implementa el algoritmo de "todos contra todos" para 16 equipos
 func (s *CalendarioService) GenerarCalendario() error {
+	return GenerarCalendario(s.DB)
+}
+
+func GenerarCalendario(db *gorm.DB) error {
 	// Obtener todos los equipos
 	var equipos []models.Equipo
-	if err := s.DB.Find(&equipos).Error; err != nil {
+	if err := db.Find(&equipos).Error; err != nil {
 		return err
 	}
-	
-	// Verificar que haya 16 equipos
-	if len(equipos) != 16 {
-		return errors.New("se requieren exactamente 16 equipos para generar el calendario")
+
+	// Número de equipos
+	numEquipos := len(equipos)
+	if numEquipos%2 != 0 {
+		return nil // Necesitamos un número par de equipos
 	}
-	
-	// Eliminar jornadas y partidos existentes
-	if err := s.DB.Exec("DELETE FROM partidos").Error; err != nil {
-		return err
+
+	// Número de jornadas será (numEquipos - 1) * 2 para ida y vuelta
+	numJornadas := (numEquipos - 1) * 2
+
+	// Fecha inicial para los partidos (primer sábado disponible)
+	fechaInicial := time.Now()
+	for fechaInicial.Weekday() != time.Saturday {
+		fechaInicial = fechaInicial.AddDate(0, 0, 1)
 	}
-	if err := s.DB.Exec("DELETE FROM jornadas").Error; err != nil {
-		return err
-	}
-	
-	// Implementar algoritmo de "todos contra todos"
-	// Para n equipos, se necesitan (n-1) jornadas
-	// En cada jornada, cada equipo juega exactamente un partido
-	
+
 	// Crear jornadas
-	fechaInicio := time.Now().AddDate(0, 0, 7) // Comenzar en una semana
-	for i := 1; i <= 15; i++ {
+	for i := 1; i <= numJornadas; i++ {
 		jornada := models.Jornada{
-			Numero:    i,
-			Fecha:     fechaInicio.AddDate(0, 0, (i-1)*7), // Una jornada cada semana
-			Completada: false,
+			Numero: i,
+			Fecha:  fechaInicial.AddDate(0, 0, (i-1)*7), // Cada jornada una semana después
 		}
-		
-		if err := s.DB.Create(&jornada).Error; err != nil {
+
+		if err := db.Create(&jornada).Error; err != nil {
 			return err
 		}
-		
-		// Crear partidos para esta jornada usando el algoritmo de "todos contra todos"
-		// Este es un algoritmo simplificado, en una implementación real se usaría
-		// un algoritmo más sofisticado como el "método de rotación" o "algoritmo de Berger"
-		
-		// En este ejemplo, simplemente asignamos partidos de forma aleatoria
-		// asegurándonos de que cada equipo juegue exactamente una vez por jornada
-		
-		equiposDisponibles := make([]models.Equipo, len(equipos))
-		copy(equiposDisponibles, equipos)
-		
-		for len(equiposDisponibles) >= 2 {
-			// Seleccionar dos equipos
-			local := equiposDisponibles[0]
-			visitante := equiposDisponibles[1]
-			
-			// Remover estos equipos de la lista de disponibles
-			equiposDisponibles = equiposDisponibles[2:]
-			
-			// Crear el partido
-			partido := models.Partido{
-				JornadaID:         jornada.ID,
-				EquipoLocalID:     local.ID,
-				EquipoVisitanteID: visitante.ID,
-				Fecha:             jornada.Fecha,
-				Hora:              "15:00", // Hora por defecto
-				Estadio:           local.Estadio,
-				Ciudad:            local.Ciudad,
-				Estado:            "Por jugar",
+
+		// Generar partidos para esta jornada
+		if i <= numJornadas/2 {
+			// Primera vuelta
+			for j := 0; j < numEquipos/2; j++ {
+				partido := models.Partido{
+					JornadaID:         jornada.ID,
+					EquipoLocalID:     equipos[j].ID,
+					EquipoVisitanteID: equipos[numEquipos-1-j].ID,
+					FechaHora:         jornada.Fecha.Add(time.Hour * 15), // 3:00 PM
+					Estado:            "pendiente",
+					GolesLocal:        0,
+					GolesVisitante:    0,
+				}
+				if err := db.Create(&partido).Error; err != nil {
+					return err
+				}
 			}
-			
-			if err := s.DB.Create(&partido).Error; err != nil {
-				return err
+		} else {
+			// Segunda vuelta (invertir locales y visitantes)
+			for j := 0; j < numEquipos/2; j++ {
+				partido := models.Partido{
+					JornadaID:         jornada.ID,
+					EquipoLocalID:     equipos[numEquipos-1-j].ID,
+					EquipoVisitanteID: equipos[j].ID,
+					FechaHora:         jornada.Fecha.Add(time.Hour * 15), // 3:00 PM
+					Estado:            "pendiente",
+					GolesLocal:        0,
+					GolesVisitante:    0,
+				}
+				if err := db.Create(&partido).Error; err != nil {
+					return err
+				}
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -239,8 +238,8 @@ func (s *CalendarioService) ActualizarResultadoPartido(partidoID uint, golesLoca
 	}
 	
 	// Actualizar el resultado
-	partido.GolesLocal = &golesLocal
-	partido.GolesVisitante = &golesVisitante
+	partido.GolesLocal = golesLocal
+	partido.GolesVisitante = golesVisitante
 	partido.Estado = "Finalizado"
 	
 	// Guardar cambios

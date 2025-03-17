@@ -1,0 +1,62 @@
+CREATE DATABASE tornea;
+
+\c tornea
+
+CREATE TABLE equipos (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    nombre_corto VARCHAR(50) NOT NULL,
+    ciudad VARCHAR(255) NOT NULL,
+    estadio VARCHAR(255) NOT NULL,
+    fundacion VARCHAR(4) NOT NULL,
+    escudo VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE jugadores (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    numero INTEGER NOT NULL,
+    posicion VARCHAR(50) NOT NULL,
+    equipo_id INTEGER REFERENCES equipos(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE jornadas (
+    id SERIAL PRIMARY KEY,
+    numero INTEGER NOT NULL,
+    fecha DATE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE partidos (
+    id SERIAL PRIMARY KEY,
+    jornada_id INTEGER REFERENCES jornadas(id),
+    equipo_local_id INTEGER REFERENCES equipos(id),
+    equipo_visitante_id INTEGER REFERENCES equipos(id),
+    goles_local INTEGER DEFAULT 0,
+    goles_visitante INTEGER DEFAULT 0,
+    fecha_hora TIMESTAMP WITH TIME ZONE,
+    estado VARCHAR(20) DEFAULT 'pendiente',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE TABLE incidencias (
+    id SERIAL PRIMARY KEY,
+    partido_id INTEGER REFERENCES partidos(id),
+    jugador_id INTEGER REFERENCES jugadores(id),
+    tipo VARCHAR(50) NOT NULL,
+    minuto INTEGER NOT NULL,
+    descripcion TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP WITH TIME ZONE
+);

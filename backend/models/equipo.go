@@ -1,16 +1,16 @@
 package models
 
+import "gorm.io/gorm"
+
 // Equipo representa un equipo de fútbol en el torneo
 type Equipo struct {
-	ID           uint      `json:"id" gorm:"primaryKey"`
-	Nombre       string    `json:"nombre" gorm:"size:100;not null"`
-	Ciudad       string    `json:"ciudad" gorm:"size:100"`
-	Fundacion    int       `json:"fundacion"`
-	Estadio      string    `json:"estadio" gorm:"size:100"`
-	Entrenador   string    `json:"entrenador" gorm:"size:100"`
-	Escudo       string    `json:"escudo" gorm:"size:255"`
-	SitioWeb     string    `json:"sitioWeb" gorm:"size:255"`
-	Descripcion  string    `json:"descripcion" gorm:"type:text"`
+	gorm.Model
+	Nombre      string `json:"nombre" binding:"required"`
+	NombreCorto string `json:"nombreCorto" binding:"required"`
+	Ciudad      string `json:"ciudad" binding:"required"`
+	Estadio     string `json:"estadio" binding:"required"`
+	Fundacion   string `json:"fundacion" binding:"required"`
+	Escudo      string `json:"escudo" binding:"required"`
 	Jugadores    []Jugador `json:"jugadores,omitempty" gorm:"foreignKey:EquipoID"`
 	PJ           int       `json:"pj" gorm:"-"` // Partidos jugados
 	PG           int       `json:"pg" gorm:"-"` // Partidos ganados

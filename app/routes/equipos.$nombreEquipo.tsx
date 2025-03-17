@@ -64,10 +64,18 @@ export default function DetalleEquipo() {
           </Link>
           
           <div className="flex flex-col md:flex-row items-center md:items-start">
-            <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mb-6 md:mb-0 md:mr-8 shadow-xl border-4 border-white">
-              <span className="text-4xl font-bold text-gray-800">
-                {equipo.nombre.substring(0, 2)}
-              </span>
+            <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center mb-6 md:mb-0 md:mr-8 shadow-xl border-4 border-white overflow-hidden">
+              {equipo.logo ? (
+                <img 
+                  src={equipo.logo} 
+                  alt={`Logo de ${equipo.nombre}`}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <span className="text-4xl font-bold text-gray-800">
+                  {equipo.nombre.substring(0, 2)}
+                </span>
+              )}
             </div>
             <div className="text-center md:text-left">
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">{equipo.nombre}</h1>
