@@ -20,7 +20,7 @@ const sessionStorage = createCookieSessionStorage({
     httpOnly: true,
     path: "/",
     sameSite: "lax",
-    secrets: ["s3cr3t"], // Cambiar esto por una clave más segura en producción
+    secrets: [process.env.COOKIE_SECRET || "s3cr3t"], // Usa la variable de entorno COOKIE_SECRET
     secure: process.env.NODE_ENV === "production",
   },
 });

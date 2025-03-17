@@ -59,6 +59,16 @@ El proyecto implementa una arquitectura moderna con frontend en Remix y backend 
    # Editar .env con la configuración deseada
    ```
 
+   El archivo `.env` contiene variables importantes para la configuración de la aplicación:
+   
+   - **Configuración del servidor**: Puerto en el que se ejecutará el servidor.
+   - **Configuración de la base de datos**: Credenciales y configuración para conectarse a la base de datos PostgreSQL.
+   - **Configuración de JWT**: Secreto y tiempo de expiración para los tokens JWT.
+   - **Configuración CORS**: Orígenes permitidos para las solicitudes CORS.
+   - **Configuración de cookies**: Secreto para las cookies de sesión.
+   
+   **IMPORTANTE**: Nunca subas el archivo `.env` al repositorio. Está incluido en `.gitignore` para evitar exponer información sensible.
+
 4. Inicializar la base de datos:
    ```bash
    bun prisma migrate dev
