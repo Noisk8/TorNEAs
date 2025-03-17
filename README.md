@@ -1,40 +1,127 @@
-# Welcome to Remix!
+# TorNEA - Torneo Nacional de Equipos Asociados
 
-- 📖 [Remix docs](https://remix.run/docs)
+## Descripción del Proyecto
 
-## Development
+TorNEA es una aplicación web para la gestión y visualización de un torneo de fútbol profesional. Permite a los usuarios explorar la información de los equipos participantes, consultar las estadísticas de los jugadores, revisar el calendario de partidos y seguir la tabla de posiciones del torneo.
 
-Run the dev server:
+El proyecto implementa una arquitectura moderna con frontend en Remix y backend en TypeScript/Go, ofreciendo una experiencia fluida y responsive tanto en dispositivos móviles como de escritorio, con soporte para temas claro y oscuro.
 
-```shellscript
-npm run dev
+## Características Principales
+
+- **Equipos**: Visualización detallada de los 16 equipos participantes
+- **Jugadores**: Nómina completa de cada equipo (22 jugadores por equipo)
+- **Tabla de Posiciones**: Clasificación actualizada de los equipos
+- **Goleadores**: Estadísticas de los mejores anotadores del torneo
+- **Calendario**: Programación completa de todos los partidos
+- **Tematización**: Soporte para tema claro y oscuro personalizable
+
+## Tecnologías Utilizadas
+
+### Frontend
+- [Remix](https://remix.run/): Framework para crear aplicaciones web con React
+- [React](https://reactjs.org/): Biblioteca para construir interfaces de usuario
+- [TypeScript](https://www.typescriptlang.org/): Superset tipado de JavaScript
+- [Tailwind CSS](https://tailwindcss.com/): Framework CSS para diseño rápido y responsivo
+- [Vite](https://vitejs.dev/): Herramienta de compilación para desarrollo rápido
+
+### Backend
+- [TypeScript](https://www.typescriptlang.org/): Para la lógica del servidor en Node.js
+- [Go](https://golang.org/): Para servicios de alto rendimiento y API
+- [Express](https://expressjs.com/): Framework para el servidor Node.js
+
+### Base de datos
+- [Prisma](https://www.prisma.io/): ORM para TypeScript
+
+## Instalación y Configuración
+
+### Prerequisitos
+
+- [Node.js](https://nodejs.org/) (v18 o superior)
+- [Bun](https://bun.sh/) - Gestor de paquetes y entorno de ejecución
+- [Go](https://golang.org/) (v1.18 o superior)
+
+### Pasos de Instalación
+
+1. Clonar el repositorio:
+   ```bash
+   git clone https://github.com/tu-usuario/tornea.git
+   cd tornea
+   ```
+
+2. Instalar dependencias:
+   ```bash
+   bun install
+   ```
+
+3. Configurar variables de entorno:
+   ```bash
+   cp .env.example .env
+   # Editar .env con la configuración deseada
+   ```
+
+4. Inicializar la base de datos:
+   ```bash
+   bun prisma migrate dev
+   ```
+
+## Comandos de Desarrollo
+
+- **Iniciar servidor de desarrollo**:
+  ```bash
+  bun run dev
+  ```
+
+- **Construir para producción**:
+  ```bash
+  bun run build
+  ```
+
+- **Ejecutar en modo producción**:
+  ```bash
+  bun start
+  ```
+
+- **Ejecutar servicios backend Go**:
+  ```bash
+  cd backend
+  go run main.go
+  ```
+
+## Estructura del Proyecto
+
+```
+tornea/
+├── app/                 # Código frontend (Remix)
+│   ├── routes/          # Rutas de la aplicación
+│   ├── components/      # Componentes reutilizables
+│   ├── styles/          # Estilos (Tailwind CSS)
+│   └── utils/           # Utilidades y helpers
+├── backend/             # Código backend
+│   ├── api/             # API endpoints
+│   ├── models/          # Modelos de datos
+│   └── services/        # Servicios de negocio
+├── prisma/              # Esquema y migraciones de la base de datos
+├── public/              # Archivos estáticos
+└── build/               # Código compilado (generado)
 ```
 
-## Deployment
+## Despliegue
 
-First, build your app for production:
+El proyecto está configurado para ser desplegado en cualquier plataforma que soporte Node.js. Para el despliegue:
 
-```sh
-npm run build
-```
+1. Construir el proyecto:
+   ```bash
+   bun run build
+   ```
 
-Then run the app in production mode:
+2. Desplegar los archivos de la carpeta `build/` en el servidor:
+   - `build/server`: Archivos del servidor
+   - `build/client`: Archivos del cliente
 
-```sh
-npm start
-```
+## Licencia
 
-Now you'll need to pick a host to deploy it to.
+Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
 
-### DIY
+## Contribuciones
 
-If you're familiar with deploying Node applications, the built-in Remix app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-- `build/server`
-- `build/client`
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever css framework you prefer. See the [Vite docs on css](https://vitejs.dev/guide/features.html#css) for more information.
+Las contribuciones son bienvenidas. Por favor, abra un issue para discutir cambios importantes antes de crear un pull request.
